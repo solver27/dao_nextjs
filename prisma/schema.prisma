@@ -15,7 +15,7 @@ model Proposal {
   title         String
   description   String
   minVote       Int       @default(0)
-  endTime       Int
+  endTime       DateTime
   yesVotes      Int       @default(0)
   noVotes       Int       @default(0)
   voters        Voter[]
@@ -24,7 +24,7 @@ model Proposal {
 model Voter {
   id            Int      @id @default(autoincrement())
   address       String
-  amount        Int
+  amount        Float
   support       Boolean
   proposal      Proposal    @relation(fields: [proposalId], references: [id])
   proposalId    Int        

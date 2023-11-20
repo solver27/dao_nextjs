@@ -9,8 +9,9 @@ export default function Create() {
 
   const submitData = async (e) => {
     e.preventDefault();
+    const endTime = new Date(date);
     try {
-      const body = { title, desc, date, min };
+      const body = { id: 2, title, desc, endTime, min };
       await fetch('/api/proposal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -42,22 +43,20 @@ export default function Create() {
           className="border border-black p-2 rounded"
         />
         <div className="flex items-center justify-between space-x-6">
-          <label for="min" className="flex-1">
+          <label className="flex-1">
             Min Vote Amount :
           </label>
           <input
             type="number"
-            id="min"
-            onChange={(e) => setMin(e.target.value)}
+            onChange={(e) => setMin(parseFloat(e.target.value))}
             value={min}
             className="flex-1 border border-black p-1 rounded"
           />
         </div>
         <div className="flex items-center justify-between space-x-6">
-          <label for="birthday" className="flex-1">End Date:</label>
+          <label className="flex-1">End Date:</label>
           <input 
             type="date"
-            id="birthday"
             value={date}
             onChange={(e) => setDate(e.target.value)}
             className="flex-1 border border-black rounded p-1"
@@ -67,7 +66,7 @@ export default function Create() {
           type="submit"
           disabled={!desc || !title || !date} 
           value="Create"
-          className="border rounded bg-cyan-500 hover:bg-cyan-600 disabled:bg-gray-500 text-white text-lg p-2 cursor-pointer" 
+          className="rounded bg-cyan-500 hover:bg-cyan-600 disabled:bg-gray-500 text-white text-lg p-2 cursor-pointer" 
         />
       </form>
     </div>
