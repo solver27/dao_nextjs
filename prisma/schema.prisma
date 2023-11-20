@@ -1,0 +1,31 @@
+// schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("POSTGRES_PRISMA_URL") // uses connection pooling
+  directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
+}
+
+model Proposal {
+  id            Int       @id
+  title         String
+  description   String
+  minVote       Int       @default(0)
+  endTime       Int
+  yesVotes      Int       @default(0)
+  noVotes       Int       @default(0)
+  voters        Voter[]
+}
+
+model Voter {
+  id            Int      @id @default(autoincrement())
+  address       String
+  amount        Int
+  support       Boolean
+  proposal      Proposal    @relation(fields: [proposalId], references: [id])
+  proposalId    Int        
+}
