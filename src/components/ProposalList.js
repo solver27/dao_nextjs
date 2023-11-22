@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useAccount, useContractRead, useContractWrite } from "wagmi";
+import { useAccount, useContractRead } from "wagmi";
+import DAO from "../lib/DAO.json"
 
 const ProposalList = () => {
   const [proposals, setProposals] = useState([]);
@@ -23,13 +24,21 @@ const ProposalList = () => {
     return date.toLocaleDateString();
   }
 
+  const { data: daoOwner } = useContractRead({
+    address: DAO.address,
+    abi: DAO.abi,
+    functionName: 'owner'
+  });
+
   return (
     <div className="divide-y">
-      <div className="flex justify-end mb-4">
-        <Link href="/create"  className="rounded bg-blue-500 hover:bg-blue-600 text-white px-2 py-1">
-          New Proposal
-        </Link>
-      </div>
+      { address && address === daoOwner &&
+        <div className="flex justify-end mb-4">
+          <Link href="/create"  className="rounded bg-blue-500 hover:bg-blue-600 text-white px-2 py-1">
+            New Proposal
+          </Link>
+        </div>
+      }
 
       {proposals.map((proposal) =>
         <Link href={`proposal/${proposal.id}`} key={proposal.id} className="grid grid-cols-6 items-center py-4">

@@ -1,5 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAccount } from "wagmi";
+import { useContractEvent, useContractWrite } from "wagmi";
+import { ethers } from "ethers";
+import DAO from "../lib/DAO.json";
 
 const Proposal = ({ id }) => {
   const [proposal, setProposal] = useState();
@@ -24,15 +27,40 @@ const Proposal = ({ id }) => {
     return date.toLocaleDateString();
   }
 
-  const vote = async (support) => {
-    if (proposal) {
+  const { write: yesVote, isLoading } = useContractWrite({
+    address: DAO.address,
+    abi: DAO.abi,
+    functionName: 'vote',
+    args: [
+      proposal?.id,
+      true
+    ]
+  });
+
+  const { write: noVote } = useContractWrite({
+    address: DAO.address,
+    abi: DAO.abi,
+    functionName: 'vote',
+    args: [
+      proposal?.id,
+      false
+    ]
+  });
+
+  useContractEvent({
+    address: DAO.address,
+    abi: DAO.abi,
+    eventName: 'Vote',
+    listener: async (log) => {
+      const data = log[0].args;
       try {
         const body = { 
-          proposalId: proposal.id, 
-          address, 
-          amount: 50, 
-          support: support 
+          proposalId: ethers.toNumber(data.proposalId), 
+          address: data.voter, 
+          amount: parseFloat(ethers.formatEther(data.amount)), 
+          support: data.vote 
         };
+      
         await fetch('/api/vote', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -41,8 +69,16 @@ const Proposal = ({ id }) => {
       } catch (error) {
         console.error(error);
       }
+    },
+  });
+
+  const isVoted = useMemo(() => {
+    if (proposal) {
+      const idx = proposal.voters.findIndex((item) => item.address === address);
+      return idx === -1 ? false : true;
     }
-  }
+    return false;
+  }, [proposal, address]);
 
   return (
     <>
@@ -58,15 +94,17 @@ const Proposal = ({ id }) => {
             <div className="space-y-6">
               <div className="flex justify-between items-center">
                 <span><strong>YES : </strong>{proposal.yesVotes}</span>
-                <button
-                  onClick={() => vote(true)}
-                  className="rounded bg-blue-500 hover:bg-blue-600 text-white text-md px-2 py-1 cursor-pointer"
-                >
-                  Vote to YES
-                </button>
+                {!isVoted &&
+                  <button
+                    onClick={yesVote}
+                    className="rounded bg-blue-500 hover:bg-blue-600 text-white text-md px-2 py-1 cursor-pointer"
+                  >
+                    Vote to YES
+                  </button>
+                }
               </div>
               {proposal && proposal.voters.filter((voter) => voter.support).map((voter) => 
-                <div className="flex justify-between">
+                <div key={voter.id} className="flex justify-between">
                   <span>{voter.address}</span>
                   <span>{voter.amount}</span>
                 </div>
@@ -75,15 +113,17 @@ const Proposal = ({ id }) => {
             <div className="space-y-6">
               <div className="flex justify-between items-center">
                 <span><strong>NO : </strong>{proposal.noVotes}</span>
-                <button
-                  onClick={() => vote(false)}
-                  className="rounded bg-red-500 hover:bg-red-600 text-white text-md px-2 py-1 cursor-pointer"
-                >
-                  Vote to NO
-                </button>
+                {!isVoted &&
+                  <button
+                    onClick={noVote}
+                    className="rounded bg-red-500 hover:bg-red-600 text-white text-md px-2 py-1 cursor-pointer"
+                  >
+                    Vote to NO
+                  </button>
+                }
               </div>
               {proposal && proposal.voters.filter((voter) => !voter.support).map((voter) => 
-                <div className="flex justify-between">
+                <div key={voter.id} className="flex justify-between">
                   <span>{voter.address}</span>
                   <span>{voter.amount}</span>
                 </div>

@@ -2,7 +2,6 @@ import Link from "next/link";
 import { useWeb3Modal } from "@web3modal/wagmi/react";
 import { useAccount, useContractRead, useContractWrite } from "wagmi";
 import DAOToken from "../lib/DAOToken.json";
-import { useEffect, useState } from "react";
 import { ethers } from "ethers";
 
 const Header = () => {
@@ -28,10 +27,10 @@ const Header = () => {
       <Link href="/" className="block text-4xl font-bold text-center">
         DAO
       </Link>
-      {address && daoBalance
+      {address
         ? <div className="space-x-4">
             <label>
-              Your DAO Balance : { ethers.formatEther(daoBalance) }
+              Your DAO Balance : { daoBalance && ethers.formatEther(daoBalance) }
             </label>
             <button 
               onClick={() => mintToken()}
